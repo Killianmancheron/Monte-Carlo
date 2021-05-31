@@ -1,0 +1,128 @@
+hashTable = []
+# blanc vide et noir
+for k in range (3):
+    l = []
+    for i in range (Dx):
+        l1 = []
+        for j in range (Dy):
+            l1.append (random.randint (0, 2 ** 64))
+        l.append (l1)
+    hashTable.append (l)
+hashTurn = random.randint (0, 2 ** 64)
+
+def play (self, move):
+        col = int (self.board [move.x2] [move.y2])
+        if col != Empty:
+            self.h = self.h ^ hashTable [col] [move.x2] [move.y2]
+        self.h = self.h ^ hashTable [move.color] [move.x2] [move.y2]
+        self.h = self.h ^ hashTable [move.color] [move.x1] [move.y1]
+        self.h = self.h ^ hashTurn
+        self.board [move.x2] [move.y2] = move.color
+        self.board [move.x1] [move.y1] = Empty
+        if (move.color == White):
+            self.turn = Black
+        else:
+            self.turn = White
+
+MaxLegalMoves = 2 * (3 * (Dx - 2) + 4)
+Table = {}
+ 
+def add (board):
+    nplayouts = [0.0 for x in range (MaxLegalMoves)]
+    nwins = [0.0 for x in range (MaxLegalMoves)]
+    Table [board.h] = [0, nplayouts, nwins]
+ 
+def look (board):
+    return Table.get (board.h, None)
+
+def UCT (board):
+    if board.terminal ():
+        return board.score ()
+    t = look (board)
+    if t != None:
+        bestValue = -1000000.0
+        best = 0
+        moves = board.legalMoves ()
+        for i in range (0, len (moves)):
+            val = 1000000.0
+            if t [1] [i] > 0:
+                Q = t [2] [i] / t [1] [i]
+                if board.turn == Black:
+                    Q = 1 - Q
+                val = Q + 0.4 * sqrt (log (t [0]) / t [1] [i])
+            if val > bestValue:
+                bestValue = val
+                best = i
+        board.play (moves [best])
+        res = UCT (board)
+        t [0] += 1
+        t [1] [best] += 1
+        t [2] [best] += res
+        return res
+    else:
+        add (board)
+        return board.playout 
+
+
+def BestMoveUCT (board, n):
+    Table = {}
+    for i in range (n):
+        b1 = copy.deepcopy (board)
+        res = UCT (b1)
+    t = look (board)
+    moves = board.legalMoves ()
+    best = moves [0]
+    bestValue = t [1] [0]
+    for i in range (1, len(moves)):
+        if (t [1] [i] > bestValue):
+            bestValue = t [1] [i]
+            best = moves [i]
+    return best
+
+
+def playoutAMAF (board, played):
+    while (True):
+        moves = []
+        moves = board.legalMoves ()
+        if len (moves) == 0 or board.terminal ():
+            return board.score ()
+        n = random.randint (0, len (moves) - 1)
+        played.append (moves [n].code (board))
+        board.play (moves [n])
+
+def code (self, board):
+        direction = 0
+        if self.y2 > self.y1:
+            if board.board [self.x2] [self.y2] == Empty:
+                direction = 1
+            else:
+                direction = 2
+        if self.y2 < self.y1:
+             if board.board [self.x2] [self.y2] == Empty:
+                direction = 3
+             else:
+                 direction = 4
+        if self.color == White:
+            return 5 * (Dy * self.x1 + self.y1) + direction
+        else:
+            return 5 * Dx * Dy + 5 * (Dy * self.x1 + self.y1) + direction
+
+MaxCodeLegalMoves = 2 * Dx * Dy * 5
+ 
+def addAMAF (board):
+    nplayouts = [0.0 for x in range (MaxLegalMoves)]
+    nwins = [0.0 for x in range (MaxLegalMoves)]
+    nplayoutsAMAF = [0.0 for x in range (MaxCodeLegalMoves)]
+    nwinsAMAF = [0.0 for x in range (MaxCodeLegalMoves)]
+    Table [board.h] = [0, nplayouts, nwins, nplayoutsAMAF, nwinsAMAF]
+
+def updateAMAF (t, played, res):
+    for i in range (len (played)):
+        code = played [i]
+        seen = False
+        for j in range (i):
+            if played [j] == code:
+                seen = True
+        if not seen:
+            t [3] [code] += 1
+            t [4] [code] += res
