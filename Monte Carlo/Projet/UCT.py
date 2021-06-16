@@ -17,6 +17,7 @@ class UCT():
         if board.terminal ():
             return board.score ()
         t = self.TMC.look (board)
+
         if t != None:
             bestValue = -1000000.0
             best = 0
@@ -50,7 +51,8 @@ class UCT():
         Returns:
             Move: meilleur mouvement selon l'algorithme.
         """    
-        Table = {}
+        self.TMC = TranspoMonteCarlo()
+        #Table = {}
         for i in range (n):
             b1 = copy.deepcopy (board)
             res = self.Update_Tree (b1)

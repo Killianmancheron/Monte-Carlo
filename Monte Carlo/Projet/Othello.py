@@ -296,9 +296,9 @@ class Move():
             int: Hashcode du mouvement
         """        
         if self.color == White:
-            return Side * self.x1 + self.y1
+            return Side * self.x + self.y
         else:
-            return Side*Side + Side * self.x1 + self.y1
+            return Side*Side + Side * self.x + self.y
         
 if __name__ == "__main__":
     print("Vérification de l'initialisation de la grille : ")
