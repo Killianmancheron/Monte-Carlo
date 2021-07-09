@@ -105,6 +105,7 @@ class Board():
         Returns:
             [float]: Score de la partie aléatoire jouée
         """        
+        
         while (True):
             moves = self.legalMoves ()
             if self.terminal ():
